@@ -3,6 +3,7 @@
 import requests
 import pytest
 import random
+import re
 
 baseUrl = "https://petstore.swagger.io/v2/"
 petId = random.randrange(100000, 200000)
@@ -26,13 +27,25 @@ defaultBody = {
 }
 
 
+def assertEncoding(body):
+    symbolCounter = 0
+    for element in body:
+        notAlphaNumeric = re.match(r'[a-zA-Z0-9_]', element) is None
+        notAllowedSymbols = re.match(r'[/[{}\":;,.\]\s]', element) is None
+        if notAlphaNumeric and notAllowedSymbols:
+            raise ValueError("Some weird symbols in response body!")
+        symbolCounter += 1
+        if symbolCounter > 1000:
+            break  # If first 1000 symbols is correct whole body is correct
+
+
 def test_petstore_api():
     # Check that our petId is not exist
     url = baseUrl + f'pet/{petId}'
     response = requests.get(url, headers=defaultHeaders)
     assert response.status_code == 404
     assert ("Pet not found" in response.text) == 1, 'Response is wrong'
-    # TODO add assert for response.text for correct encoding as a function
+    assertEncoding(response.text)
     print('\nPet is not exist. RESPONSE:\n' + response.text)
 
     # Create pet with our petId
@@ -42,6 +55,7 @@ def test_petstore_api():
                              json=defaultBody)
     assert response.status_code == 200
     assert (str(petId) in response.text) == 1, 'Response is wrong'
+    assertEncoding(response.text)
     print('\nPet has been created. RESPONSE:\n' + response.text)
 
     # Delete our pet
@@ -49,6 +63,7 @@ def test_petstore_api():
     response = requests.delete(url, headers=defaultHeaders)
     assert response.status_code == 200
     assert (str(petId) in response.text) == 1, 'Response is wrong'
+    assertEncoding(response.text)
     print('\nPet has been deleted. RESPONSE:\n' + response.text)
 
 
