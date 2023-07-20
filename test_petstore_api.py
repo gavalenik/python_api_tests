@@ -30,14 +30,14 @@ defaultBody = {
 
 def assertEncoding(body):
     symbolCounter = 0
-    for element in body:
-        notAlphaNumeric = re.match(r'[a-zA-Z0-9_]', element) is None
-        notAllowedSymbols = re.match(r'[/[{}\":;,.\]\s]', element) is None
+    for symbol in body:
+        notAlphaNumeric = re.match(r'[a-zA-Z0-9_]', symbol) is None
+        notAllowedSymbols = re.match(r'[/[{}\":;,.\]\s]', symbol) is None
         if notAlphaNumeric and notAllowedSymbols:
-            raise ValueError("Some weird symbols in response body!")
+            raise ValueError(f'Incorrect symbol "{symbol}" in response body!')
         symbolCounter += 1
         if symbolCounter > 1000:
-            break  # If first 1000 symbols is correct, whole body is correct
+            break  # If first 1000 symbols are correct, whole body is correct
 
 
 def test_petstore_api():
